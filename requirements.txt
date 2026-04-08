@@ -3,6 +3,6 @@ pandas
 plotly
 torch
 transformers
-torchcrf
+pytorch-crf
 jieba
 numpy
