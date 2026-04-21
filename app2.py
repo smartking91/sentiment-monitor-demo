@@ -28,8 +28,8 @@ except ImportError:
 # 0. 页面全局配置 + 科技风主题
 # ==========================================
 st.set_page_config(
-    page_title="上市公司舆情评分监控系统", 
-    page_icon="📈", 
+    page_title="电商全链路风控预警系统", 
+    page_icon="🛒", 
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -245,29 +245,29 @@ def load_ai_models():
 df_news, df_scores = load_csv_data()
 
 # ==========================================
-# 3. 侧边栏导航
+# 3. 侧边栏导航（电商版）
 # ==========================================
-st.sidebar.title("🤖 智能舆情监控系统")
+st.sidebar.title("🛒 电商全链路风控预警系统")
 st.sidebar.markdown("---")
 
 st.sidebar.subheader("🎯 场景化分析配置")
-user_type_new = st.sidebar.radio("选择用户主体：", ["投资机构", "上市企业"], key="user_type_new")
+user_type_new = st.sidebar.radio("选择用户主体：", ["品牌电商/直播电商", "产业带商家/中小店铺"], key="user_type_new")
 
-if user_type_new == "投资机构":
-    scenario_new = st.sidebar.selectbox("选择业务场景：", ["股票投资", "债券风控"], key="scenario_new")
+if user_type_new == "品牌电商/直播电商":
+    scenario_new = st.sidebar.selectbox("选择业务场景：", ["竞对监控", "风险传导"], key="scenario_new")
 else:
-    scenario_new = st.sidebar.selectbox("选择业务场景：", ["IR与市值管理", "运营与合规风控"], key="scenario_new")
+    scenario_new = st.sidebar.selectbox("选择业务场景：", ["品牌声誉", "平台合规"], key="scenario_new")
 
 st.sidebar.markdown("---")
 
 menu = st.sidebar.radio("系统功能导航：", (
-    "📈 宏观舆情大屏", 
-    "🔍 个股舆情追踪", 
-    "📑 自动公关研报", 
-    "🛠️ 细粒度 AI 引擎体验"
+    "📊 电商风控大屏", 
+    "🔍 品牌/竞品深度分析", 
+    "📑 自动风控报告", 
+    "🛠️ 电商AI引擎体验"
 ))
 st.sidebar.markdown("---")
-st.sidebar.info("🎓 **毕业设计核心成果**\n\n基于 **RoBERTa-TextCNN** 与 **智能规则白名单** 的混合驱动金融舆情架构。")
+st.sidebar.info("🎓 **三创赛核心成果**\n\n针对电商四大核心痛点：\n竞对异动、风险传导、差评发酵、平台违规\n打造垂直化风控解决方案。")
 
 # ==========================================
 # 颜色配置
@@ -324,27 +324,27 @@ def judge_sentiment(sentence):
         return "中性", 0.95, "AI模型判定"
 
 # ==========================================
-# 模块一：宏观舆情大屏【已回退到原始版本】
+# 模块一：电商风控大屏
 # ==========================================
-if menu == "📈 宏观舆情大屏":
-    st.title("📊 全市场舆情监控大屏")
+if menu == "📊 电商风控大屏":
+    st.title("📊 电商全链路风控监控大屏")
     
     if not df_news.empty and not df_scores.empty:
         col1, col2, col3, col4 = st.columns(4)
-        col1.metric("今日处理实体切片", f"{len(df_news)} 条")
-        col2.metric("涉及上市公司", f"{df_scores['company'].nunique()} 家")
+        col1.metric("今日处理评论/资讯", f"{len(df_news)} 条")
+        col2.metric("监控品牌/竞品", f"{df_scores['company'].nunique()} 家")
         pos_news = len(df_news[df_news['sentiment'].str.contains("正面")])
-        col3.metric("市场利好切片", f"{pos_news} 条", "积极信号")
-        col4.metric("市场利空切片", f"{len(df_news)-pos_news} 条", "-风险预警")
+        col3.metric("好评/正面声量", f"{pos_news} 条", "积极信号")
+        col4.metric("差评/负面声量", f"{len(df_news)-pos_news} 条", "-风险预警")
 
         st.markdown("---")
         col_chart1, col_chart2 = st.columns(2)
         with col_chart1:
-            st.subheader("🥧 市场整体舆情极性分布")
+            st.subheader("🥧 市场整体情感分布")
             sentiment_counts = df_news['sentiment'].value_counts().reset_index()
-            sentiment_counts.columns = ['舆情极性', '数量']
-            fig_pie = px.pie(sentiment_counts, names='舆情极性', values='数量', hole=0.4,
-                             color='舆情极性', color_discrete_map=COLOR_MAP,
+            sentiment_counts.columns = ['情感极性', '数量']
+            fig_pie = px.pie(sentiment_counts, names='情感极性', values='数量', hole=0.4,
+                             color='情感极性', color_discrete_map=COLOR_MAP,
                              template="plotly_dark")
             fig_pie.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)',
@@ -365,8 +365,8 @@ if menu == "📈 宏观舆情大屏":
         with col_chart2:
             st.subheader("🔥 今日舆情热度 Top 10")
             top_companies = df_scores.groupby('company')['news_count'].sum().nlargest(10).reset_index()
-            top_companies.columns = ['上市公司', '舆情热度 (条)']
-            fig_bar = px.bar(top_companies, x='上市公司', y='舆情热度 (条)', 
+            top_companies.columns = ['品牌/竞品', '舆情热度 (条)']
+            fig_bar = px.bar(top_companies, x='品牌/竞品', y='舆情热度 (条)', 
                              color='舆情热度 (条)', color_continuous_scale=HOT_COLOR_SCALE,
                              template="plotly_dark", text='舆情热度 (条)')
             fig_bar.update_layout(
@@ -381,31 +381,31 @@ if menu == "📈 宏观舆情大屏":
             st.plotly_chart(fig_bar, use_container_width=True)
 
         st.markdown("---")
-        st.subheader("📋 企业每日舆情量化因子排行榜")
+        st.subheader("📋 品牌每日健康度排行榜")
         display_scores = df_scores.rename(columns={
-            'date': '日期', 'company': '上市公司', 'news_count': '相关新闻总数',
-            'pos_count': '正面情绪条数', 'neg_count': '负面情绪条数', 'public_opinion_index': '综合舆情评分 (0-100)'
+            'date': '日期', 'company': '品牌/竞品', 'news_count': '相关声量总数',
+            'pos_count': '正面情绪条数', 'neg_count': '负面情绪条数', 'public_opinion_index': '综合健康度评分 (0-100)'
         })
         st.dataframe(display_scores, use_container_width=True, height=400)
 
 # ==========================================
-# 模块二：个股舆情追踪【完全符合甲方要求版】
+# 模块二：品牌/竞品深度分析（电商维度版）
 # ==========================================
-elif menu == "🔍 个股舆情追踪":
-    st.title("🎯 个股细粒度舆情雷达")
+elif menu == "🔍 品牌/竞品深度分析":
+    st.title("🎯 品牌/竞品细粒度健康度雷达")
     
     if not df_news.empty:
         default_companies = ['宁德时代', '比亚迪', '中芯国际', '贵州茅台', '腾讯控股']
         all_companies = sorted(list(df_news['company'].unique()) + default_companies)
         all_companies = sorted(list(set(all_companies)))
         
-        selected_company = st.selectbox("请选择要分析的上市公司：", all_companies, 
+        selected_company = st.selectbox("请选择要分析的品牌/竞品：", all_companies, 
                                         index=all_companies.index('宁德时代') if '宁德时代' in all_companies else 0)
         
         available_dates = sorted(df_news[df_news['company'] == selected_company]['publish_time'].astype(str).str[:10].unique().tolist(), reverse=True)
         
         if not available_dates:
-            st.warning("该公司暂无数据")
+            st.warning("该品牌暂无数据")
         else:
             selected_date = st.selectbox("请选择分析日期：", available_dates)
             
@@ -421,24 +421,22 @@ elif menu == "🔍 个股舆情追踪":
                         grade_code = result['grade_code']
                         grade_desc = result['grade_desc']
                         
-                        # 兼容旧版和新版返回格式
+                        # 【关键修改】电商场景维度映射
                         if 'dimension_scores' in result:
                             dimension_scores = result['dimension_scores']
                         else:
-                            # 如果没有分维度数据，生成默认模拟数据
-                            if scenario_new == "股票投资":
-                                dimension_scores = {"市场情绪": 80, "公司治理": 75, "财务经营": 82, "行业政策": 78}
-                            elif scenario_new == "债券风控":
-                                dimension_scores = {"偿债能力": 78, "流动性风险": 80, "担保风险": 85, "行业风险": 76}
-                            elif scenario_new == "IR与市值管理":
-                                dimension_scores = {"投资者关系": 82, "信息披露": 80, "市值表现": 78, "品牌声誉": 81}
+                            if scenario_new == "竞对监控":
+                                dimension_scores = {"价格竞争力": 80, "活动策略": 75, "口碑对比": 82, "市场份额": 78}
+                            elif scenario_new == "风险传导":
+                                dimension_scores = {"供应链稳定": 78, "政策影响": 80, "竞品牵连": 85, "行业景气": 76}
+                            elif scenario_new == "品牌声誉":
+                                dimension_scores = {"用户口碑": 82, "差评控制": 80, "社媒声量": 78, "品牌好感": 81}
                             else:
-                                dimension_scores = {"合规经营": 80, "安全生产": 83, "内部管理": 79, "供应链风险": 77}
+                                dimension_scores = {"广告合规": 80, "知识产权": 83, "内容安全": 79, "平台规则": 77}
                         
                         if 'basis' in result:
                             basis = result['basis']
                         else:
-                            # 如果没有结构化依据，生成默认模拟数据
                             basis = {
                                 "加分事件": [
                                     f"{selected_company}近期经营态势良好，市场关注度提升",
@@ -448,10 +446,9 @@ elif menu == "🔍 个股舆情追踪":
                                     "市场存在短期波动风险，需密切关注",
                                     "宏观环境存在一定不确定性"
                                 ],
-                                "维度说明": "综合评分基于多维度舆情数据加权计算得出，整体舆情状况良好"
+                                "维度说明": "综合评分基于多维度电商数据加权计算得出，整体健康状况良好"
                             }
                         
-                        # 确定风险等级颜色
                         if "L2" in grade_code:
                             risk_level = grade_code
                             risk_tag_class = "risk-tag-high"
@@ -467,13 +464,12 @@ elif menu == "🔍 个股舆情追踪":
                         
                         st.markdown("---")
                         
-                        # 第一部分：总评分+风险等级
                         col_score, col_risk = st.columns([2, 1])
                         with col_score:
                             st.markdown(f"""
                                 <div style="text-align: center; padding: 20px;">
                                     <div style="font-size: 1.2rem; color: #94a3b8; margin-bottom: 10px;">
-                                        【{scenario_new}】综合舆情评分
+                                        【{scenario_new}】综合健康度评分
                                     </div>
                                     <div style="font-size: 5rem; font-weight: 800; color: {score_color}; text-shadow: 0 0 20px {score_color};">
                                         {final_score}
@@ -499,12 +495,10 @@ elif menu == "🔍 个股舆情追踪":
                         
                         st.markdown("---")
                         
-                        # 第二部分：分维度得分雷达图
                         st.subheader("1️⃣ 多维度评分详情")
                         col_radar, col_table = st.columns([1, 1])
                         
                         with col_radar:
-                            # 生成雷达图
                             radar_data = pd.DataFrame({
                                 '维度': list(dimension_scores.keys()),
                                 '得分': list(dimension_scores.values())
@@ -524,64 +518,60 @@ elif menu == "🔍 个股舆情追踪":
                             st.plotly_chart(fig_radar, use_container_width=True)
                         
                         with col_table:
-                            # 维度得分表格
                             st.dataframe(radar_data.sort_values('得分', ascending=False), 
                                         use_container_width=True, hide_index=True)
                         
                         st.markdown("---")
                         
-                        # 第三部分：结构化评分依据
                         st.subheader("2️⃣ 评分依据")
                         st.markdown(f"**综合说明**：{basis['维度说明']}")
                         
                         col_add, col_sub = st.columns(2)
                         with col_add:
-                            st.success("✅ 加分事件")
+                            st.success("✅ 加分项")
                             for idx, event in enumerate(basis['加分事件']):
                                 st.markdown(f"{idx+1}. {event}")
                         
                         with col_sub:
-                            st.error("❌ 扣分事件")
+                            st.error("❌ 扣分项")
                             for idx, event in enumerate(basis['扣分事件']):
                                 st.markdown(f"{idx+1}. {event}")
                         
                         st.markdown("---")
                         
-                        # 第四部分：风险提示和应对建议
                         st.subheader("3️⃣ 风险提示和应对建议")
                         if 'advice_text' in result:
                             st.markdown(result['advice_text'])
                         else:
                             st.markdown("""
                             ### 风险提示
-                            1. 市场短期波动风险
-                            2. 宏观环境不确定性风险
+                            1. 竞品活动频繁，竞争压力增大
+                            2. 存在少量差评发酵风险
                             
                             ### 应对建议
-                            1. 密切关注市场动态，及时调整策略
-                            2. 加强舆情监测，建立预警机制
+                            1. 优化活动策略，提升竞争力
+                            2. 加强差评监控，及时响应处理
                             """)
                 else:
                     st.error("请确保 scenario_engine.py 在同一目录下！")
 
 # ==========================================
-# 模块三：自动公关研报
+# 模块三：自动风控报告
 # ==========================================
-elif menu == "📑 自动公关研报":
-    st.title("📑 AI 驱动企业舆情深度研报生成")
-    st.markdown(f"基于【{scenario_new}】维度，自动生成符合业务标准的结构化数据研报。")
+elif menu == "📑 自动风控报告":
+    st.title("📑 AI 驱动电商风控深度报告生成")
+    st.markdown(f"基于【{scenario_new}】维度，自动生成符合电商业务标准的结构化风控报告。")
     
     if not df_scores.empty:
         default_companies = ['宁德时代', '比亚迪', '中芯国际', '贵州茅台', '腾讯控股']
         all_companies = sorted(list(df_scores['company'].unique()) + default_companies)
         all_companies = sorted(list(set(all_companies)))
         
-        selected_company = st.selectbox("选择目标企业，一键生成研报：", all_companies,
+        selected_company = st.selectbox("选择目标品牌，一键生成报告：", all_companies,
                                         index=all_companies.index('宁德时代') if '宁德时代' in all_companies else 0)
         
-        if st.button("🚀 生成深度舆情研报", type="primary"):
+        if st.button("🚀 生成深度风控报告", type="primary"):
             with st.spinner('AI 正在深度挖掘数据并撰写报告...'):
-                # 研报也用CSV里的日期，保持一致
                 data_date = df_news['publish_time'].astype(str).str[:10].iloc[0]
                 total_news = len(df_news[df_news['company'] == selected_company])
                 neg_news = len(df_news[(df_news['company'] == selected_company) & (df_news['sentiment'].str.contains("负面"))])
@@ -604,26 +594,25 @@ elif menu == "📑 自动公关研报":
                     except:
                         pass
 
-                # 场景化话术配置
-                if scenario_new == "股票投资":
-                    report_title = "股票投资舆情分析与择时建议报告"
-                    focus_desc = "本报告侧重舆情对股价的影响预测与投资机会分析"
-                elif scenario_new == "债券风控":
-                    report_title = "信用债舆情风险排查与预警报告"
-                    focus_desc = "本报告侧重违约风险排查与偿债能力舆情分析"
-                elif scenario_new == "IR与市值管理":
-                    report_title = "投资者关系与市值管理舆情周报"
-                    focus_desc = "本报告侧重市值影响与公关处置建议"
+                if scenario_new == "竞对监控":
+                    report_title = "竞对监控与价格策略分析报告"
+                    focus_desc = "本报告侧重竞品价格异动、活动策略对比与市场机会分析"
+                elif scenario_new == "风险传导":
+                    report_title = "供应链风险传导与行业预警报告"
+                    focus_desc = "本报告侧重供应链风险、政策影响与竞品牵连分析"
+                elif scenario_new == "品牌声誉":
+                    report_title = "品牌声誉管理与差评处置报告"
+                    focus_desc = "本报告侧重差评发酵监控、社媒口碑管理与用户情绪分析"
                 else:
-                    report_title = "运营合规与内部风险控制舆情报告"
-                    focus_desc = "本报告侧重内部违规风险与监管政策影响"
+                    report_title = "平台合规风控与知识产权预警报告"
+                    focus_desc = "本报告侧重广告合规、知识产权保护与平台规则适配"
 
                 st.markdown("---")
                 st.header(f"【{selected_company}】{report_title}")
                 st.caption(f"生成时间：{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | 分析维度：{scenario_new}")
                 
                 st.subheader("一、 核心事件概述")
-                st.info(f"**概括**：{focus_desc}。近期关于【{selected_company}】的舆情主要集中在市场波动与业务进展，整体负面声量占比达到 **{neg_ratio:.1f}%**，【{scenario_new}】维度综合评分为 **{final_score}** 分，风险等级为 **{grade_code}**。")
+                st.info(f"**概括**：{focus_desc}。近期关于【{selected_company}】的舆情主要集中在市场竞争与用户反馈，整体负面声量占比达到 **{neg_ratio:.1f}%**，【{scenario_new}】维度综合评分为 **{final_score}** 分，风险等级为 **{grade_code}**。")
                 c1, c2, c3 = st.columns(3)
                 c1.metric("监测总声量", f"{total_news} 条")
                 c2.metric("负面情感占比", f"{neg_ratio:.1f}%")
@@ -658,11 +647,11 @@ elif menu == "📑 自动公关研报":
                 st.markdown("#### 🚨 分阶段处置行动指南")
                 s_col1, s_col2, s_col3 = st.columns(3)
                 with s_col1:
-                    st.error("**（一）立即行动 (24小时内)**\n\n1. 启动公关一级响应，密切监测异动。\n2. 针对核心质疑准备统一答径。\n3. 核实合规风险。")
+                    st.error("**（一）立即行动 (24小时内)**\n\n1. 启动风控一级响应，密切监测异动。\n2. 针对核心风险点准备应对策略。\n3. 核实合规/供应链风险。")
                 with s_col2:
-                    st.warning("**（二）中期措施 (3-7天)**\n\n1. 引导正面声量。\n2. 加强媒体沟通。\n3. 监测竞争对手动态。")
+                    st.warning("**（二）中期措施 (3-7天)**\n\n1. 引导正面声量。\n2. 加强媒体/用户沟通。\n3. 监测竞品动态。")
                 with s_col3:
-                    st.success("**（三）长效机制 (14-30天)**\n\n1. 优化信息披露机制。\n2. 开展声誉培训。\n3. 修复投资者关系。")
+                    st.success("**（三）长效机制 (14-30天)**\n\n1. 优化运营策略与风控机制。\n2. 开展团队培训。\n3. 修复品牌声誉/供应链关系。")
                 
                 report_content = f"""
                 {selected_company} {report_title}
@@ -685,25 +674,25 @@ elif menu == "📑 自动公关研报":
                 （内容略，详见网页版）
                 """
                 st.download_button(
-                    label="📥 下载完整研报 (TXT/PDF)",
+                    label="📥 下载完整风控报告 (TXT)",
                     data=report_content,
-                    file_name=f"{selected_company}_{scenario_new}_舆情研报.txt",
+                    file_name=f"{selected_company}_{scenario_new}_风控报告.txt",
                     mime="text/plain"
                 )
 
 # ==========================================
-# 模块四：AI 核心引擎体验
+# 模块四：电商AI引擎体验
 # ==========================================
-elif menu == "🛠️ 细粒度 AI 引擎体验":
-    st.title("🧠 细粒度级联 AI 引擎实时推理")
-    st.markdown('<div class="tech-highlight">RoBERTa+TextCNN+智能规则，双重驱动</div>', unsafe_allow_html=True)
-    st.markdown("本模块展示 **“深度学习 + 智能规则 (Smart Rules)”** 双重驱动的金融舆情分析架构。")
+elif menu == "🛠️ 电商AI引擎体验":
+    st.title("🧠 电商细粒度级联 AI 引擎实时推理")
+    st.markdown('<div class="tech-highlight">RoBERTa+TextCNN+智能规则，双重驱动电商风控</div>', unsafe_allow_html=True)
+    st.markdown("本模块展示 **“深度学习 + 智能规则 (Smart Rules)”** 双重驱动的电商舆情分析架构。")
     
     tokenizer, ner_model, senti_model, device = load_ai_models()
     st.success("✅ Hybrid 双引擎系统已就绪！")
     
     default_text = "2026年4月7日 财经综合讯 一季度业绩披露窗口期开启，A股市场多领域上市公司集中释放经营动态，产业链分化与市场情绪共振特征显著。新能源赛道方面，宁德时代今日官宣新一代钠离子电池量产线全线贯通，能量密度突破200Wh/kg，已与头部车企达成定点合作，市场份额有望持续提升；同赛道比亚迪公布3月新能源汽车销量达32.5万辆，同比增长18%，但受碳酸锂价格短期波动影响，市场对其二季度毛利率仍存分歧。"
-    test_text = st.text_area("请输入一段包含多家公司的复杂新闻：", default_text, height=150)
+    test_text = st.text_area("请输入一段包含多家品牌的复杂电商文本：", default_text, height=150)
     
     if st.button("🚀 启动细粒度分析引擎 (ABSA)", type="primary"):
         st.markdown("---")
@@ -723,7 +712,7 @@ elif menu == "🛠️ 细粒度 AI 引擎体验":
                 comps = extract_companies(sent)
                 for c in comps:
                     all_companies_found.add(c)
-            st.write(f"✅ 2. 实体锁定完成，共发现 {len(all_companies_found)} 家上市公司：{'、'.join(all_companies_found)}")
+            st.write(f"✅ 2. 品牌锁定完成，共发现 {len(all_companies_found)} 家品牌：{'、'.join(all_companies_found)}")
             time.sleep(0.8)
             
             for sent in sentences:
@@ -751,7 +740,7 @@ elif menu == "🛠️ 细粒度 AI 引擎体验":
             all_results.append({
                 "句子序号": idx+1,
                 "定位切片": sent,
-                "提取主体": "、".join(comps),
+                "提取品牌": "、".join(comps),
                 "情感极性": senti_label,
                 "置信度": f"{confidence*100:.1f}%",
                 "判决依据": note
